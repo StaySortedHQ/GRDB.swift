@@ -11,7 +11,9 @@ var swiftSettings: [SwiftSetting] = [
     .define("SQLITE_ENABLE_PREUPDATE_HOOK"),
     .define("SQLITE_ENABLE_SNAPSHOT")
 ]
-var cSettings: [CSetting] = []
+var cSettings: [CSetting] = [
+    .define("GRDB_SQLITE_ENABLE_PREUPDATE_HOOK")
+]
 if ProcessInfo.processInfo.environment["SQLITE_ENABLE_FTS5"] == "1" {
     swiftSettings.append(.define("SQLITE_ENABLE_FTS5"))
 }
