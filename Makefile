@@ -3,22 +3,20 @@
 #
 # make test - Run all tests but performance tests
 # make test_performance - Run performance tests
-# make documentation - Generate jazzy documentation
+# make doc - Generate DocC documentation
 # make clean - Remove build artifacts
 # make distclean - Restore repository to a pristine state
 
 default: test
-smokeTest: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_minTarget test_framework_SQLCipher4Encrypted test_framework_GRDBCustomSQLiteiOS_maxTarget test_SPM
+smokeTest: test_framework_GRDBiOS_maxTarget test_framework_GRDBiOS_minTarget test_framework_SQLCipher3 test_framework_SQLCipher4Encrypted test_framework_GRDBCustomSQLiteiOS_maxTarget test_SPM
 
 # Requirements
 # ============
 #
 # Xcode
 # CocoaPods - https://cocoapods.org
-# Jazzy - https://github.com/realm/jazzy
 
 GIT := $(shell command -v git)
-JAZZY := $(shell command -v jazzy)
 POD := $(shell command -v pod)
 XCRUN := $(shell command -v xcrun)
 XCODEBUILD := set -o pipefail && $(shell command -v xcodebuild)
@@ -41,6 +39,7 @@ ifeq ($(TRAVIS),true)
   COCOAPODS_EXTRA_TIME = --verbose
 endif
 
+DOCS_PATH = Documentation/Reference
 
 # Tests
 # =====
@@ -50,7 +49,16 @@ TEST_ACTIONS = clean build build-for-testing test-without-building
 
 # When adding support for an Xcode version, look for available devices with
 # `xcrun xctrace list devices` (or the deprecated `instruments -s devices`).
-ifeq ($(XCODEVERSION),14.0)
+ifeq ($(XCODEVERSION),14.1)
+  MAX_SWIFT_VERSION = 5.7
+  MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
+  MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 14,OS=16.1"
+  #MIN_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 8,OS=12.4" TODO: restore
+  MAX_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=16.1"
+  #MIN_TVOS_DESTINATION = "platform=tvOS Simulator,name=Apple TV,OS=11.4" TODO: restore
+  OTHER_SWIFT_FLAGS = '$$(inherited) -D SQLITE_ENABLE_FTS5 -D SQLITE_ENABLE_PREUPDATE_HOOK' # -Xfrontend -warn-concurrency -Xfrontend -enable-actor-data-race-checks'
+  GCC_PREPROCESSOR_DEFINITIONS = '$$(inherited) GRDB_SQLITE_ENABLE_PREUPDATE_HOOK=1'
+else ifeq ($(XCODEVERSION),14.0)
   MAX_SWIFT_VERSION = 5.7
   MIN_SWIFT_VERSION = # MAX_SWIFT_VERSION is the minimum supported Swift version
   MAX_IOS_DESTINATION = "platform=iOS Simulator,name=iPhone 13,OS=16.0"
@@ -162,12 +170,14 @@ ifdef MIN_SWIFT_VERSION
 endif
 
 test_framework_GRDBiOS_minTarget:
+ifdef MIN_IOS_DESTINATION
 	$(XCODEBUILD) \
 	  -project GRDB.xcodeproj \
 	  -scheme GRDB \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS)
+endif
 
 test_framework_GRDBtvOS: test_framework_GRDBtvOS_maxTarget test_framework_GRDBtvOS_minTarget
 test_framework_GRDBtvOS_maxTarget: test_framework_GRDBtvOS_maxTarget_maxSwift test_framework_GRDBtvOS_maxTarget_minSwift
@@ -233,12 +243,14 @@ ifdef MIN_SWIFT_VERSION
 endif
 
 test_framework_GRDBCustomSQLiteiOS_minTarget: SQLiteCustom
+ifdef MIN_IOS_DESTINATION
 	$(XCODEBUILD) \
 	  -project GRDBCustom.xcodeproj \
 	  -scheme GRDBCustom \
 	  -destination $(MIN_IOS_DESTINATION) \
 	  SWIFT_VERSION=$(MAX_SWIFT_VERSION) \
 	  $(TEST_ACTIONS)
+endif
 
 test_framework_SQLCipher3:
 ifdef POD
@@ -470,26 +482,32 @@ SQLiteCustom/src/sqlite3.h:
 # Documentation
 # =============
 
+doc-localhost:
+	# Generates documentation in ~/Sites/GRDB
+	# See https://discussions.apple.com/docs/DOC-3083 for Apache setup on the mac
+	mkdir -p ~/Sites/GRDB
+	SPI_BUILDER=1 $(SWIFT) package \
+	  --allow-writing-to-directory ~/Sites/GRDB \
+	  generate-documentation \
+	  --output-path ~/Sites/GRDB \
+	  --target GRDB \
+	  --disable-indexing \
+	  --transform-for-static-hosting \
+	  --hosting-base-path "~$(USER)/GRDB"
+	open "http://localhost/~$(USER)/GRDB/documentation/grdb/"
+
 doc:
-ifdef JAZZY
-	$(JAZZY) \
-	  --clean \
-	  --author 'Gwendal Roué' \
-	  --author_url https://github.com/groue \
-	  --source-host github \
-	  --source-host-url https://github.com/groue/GRDB.swift \
-	  --source-host-files-url https://github.com/groue/GRDB.swift/tree/v6.0.0 \
-	  --module-version 6.0.0 \
-	  --module GRDB \
-	  --root-url http://groue.github.io/GRDB.swift/docs/6.0/ \
-	  --output Documentation/Reference \
-	  --swift-build-tool xcodebuild \
-	  --undocumented-text '' \
-	  --xcodebuild-arguments -project,GRDB.xcodeproj,-scheme,GRDB
-else
-	@echo Jazzy must be installed for doc
-	@exit 1
-endif
+	# https://apple.github.io/swift-docc-plugin/documentation/swiftdoccplugin/publishing-to-github-pages/
+	rm -rf $(DOCS_PATH)
+	mkdir -p $(DOCS_PATH)
+	SPI_BUILDER=1 $(SWIFT) package \
+	  --allow-writing-to-directory $(DOCS_PATH) \
+	  generate-documentation \
+	  --output-path $(DOCS_PATH) \
+	  --target GRDB \
+	  --disable-indexing \
+	  --transform-for-static-hosting \
+	  --hosting-base-path GRDB.swift/docs/6.3
 
 
 # Cleanup
@@ -503,7 +521,7 @@ distclean:
 clean:
 	$(SWIFT) package reset
 	cd Tests/SPM && $(SWIFT) package reset
-	rm -rf Documentation/Reference
+	rm -rf $(DOCS_PATH)
 	find . -name Package.resolved | xargs rm -f
 
 .PHONY: distclean clean doc test smokeTest SQLiteCustom

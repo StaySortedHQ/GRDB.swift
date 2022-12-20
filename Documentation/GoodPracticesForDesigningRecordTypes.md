@@ -245,7 +245,7 @@ Let's look at three examples:
 
 **Singleton Records** are records that store configuration values, user preferences, and generally some global application state. They are backed by a database table that contains a single row.
 
-The recommended setup for such records is described in the [Single-Row Tables](SingleRowTables.md) guide. Go check it, and come back when you're done!
+The recommended setup for such records is described in the [Single-Row Tables](https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/singlerowtables) guide. Go check it, and come back when you're done!
 
 
 ## Define Record Requests
@@ -804,16 +804,16 @@ Instead, have a look at [Database Observation]:
 [Divide and Conquer]: https://en.wikipedia.org/wiki/Divide_and_rule
 [Why Adopt GRDB?]: WhyAdoptGRDB.md
 [isolation]: https://en.wikipedia.org/wiki/Isolation_(database_systems)
-[migrations]: Migrations.md
-[migration]: Migrations.md
+[migrations]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations
+[migration]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/migrations
 [Foreign Key Actions]: https://sqlite.org/foreignkeys.html#fk_actions
-[Concurrency Guide]: Concurrency.md
-[GRDB concurrency rules]: Concurrency.md#concurrency-rules
+[Concurrency Guide]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency
+[GRDB concurrency rules]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/concurrency
 [PersistableRecord]: ../README.md#persistablerecord-protocol
-[Database Observation]: ../README.md#database-changes-observation
-[ValueObservation]: ../README.md#valueobservation
-[RxGRDB]: http://github.com/RxSwiftCommunity/RxGRDB
-[TransactionObserver]: ../README.md#transactionobserver-protocol
+[Database Observation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
+[ValueObservation]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/valueobservation
+[RxGRDB]: https://github.com/RxSwiftCommunity/RxGRDB
+[TransactionObserver]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/transactionobserver
 [Trust SQLite More Than Yourself]: #trust-sqlite-more-than-yourself
 [Persistable Record Types are Responsible for Their Tables]: #persistable-record-types-are-responsible-for-their-tables
 [Record Types Hide Intimate Database Details]: #record-types-hide-intimate-database-details
@@ -823,7 +823,7 @@ Instead, have a look at [Database Observation]:
 [How to Design Database Managers]: #how-to-design-database-managers
 [Observe the Database and Refetch when Needed]: #observe-the-database-and-refetch-when-needed
 [query interface]: ../README.md#the-query-interface
-[observe database changes]: ../README.md#database-changes-observation
+[observe database changes]: https://swiftpackageindex.com/groue/grdb.swift/documentation/grdb/databaseobservation
 [data protection]: ../README.md#data-protection
 [Embrace Errors]: #embrace-errors
 [Thread-Safety is also an Application Concern]: #thread-safety-is-also-an-application-concern
